@@ -192,7 +192,6 @@
   </div>
 
   <script>
-    // 복사해주신 구글 앱스 스크립트 배포 주소를 적용했습니다.
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyhnLDXvrvFrLV1tk3fD4PIj2w-rlKqX-ERk4RLQu40d32vKYoIk3n16746HdFkz8_EYA/exec";
 
     let allSchedules = [];
@@ -210,12 +209,25 @@
           allSchedules = data.schedules || [];
           document.getElementById('noticeContent').innerText = data.notice || '공지사항이 없습니다.';
           renderCalendar();
-          renderSchedules(allSchedules);
+          
+          // 🔥 지나간 날짜 자동 제외 후 오늘 이후 다가오는 일정만 표시
+          const todayStr = getTodayString();
+          const upcomingSchedules = allSchedules.filter(s => s.date >= todayStr);
+          renderSchedules(upcomingSchedules);
         })
         .catch(err => {
-          document.getElementById('app').innerHTML = '<div class="loading">데이터를 불러오지 못했습니다. 앱스 스크립트 배포 권한을 확인해 주세요.</div>';
+          document.getElementById('app').innerHTML = '<div class="loading">데이터를 불러오지 못했습니다. URL 및 권한을 확인해 주세요.</div>';
           console.error(err);
         });
+    }
+
+    // 오늘 날짜 문자열 반환 (yyyy-MM-dd)
+    function getTodayString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     }
 
     function renderCalendar() {
@@ -256,14 +268,16 @@
         renderSchedules(filtered);
       } else {
         alert(dateKey + '에는 등록된 연습 일정이 없습니다.');
-        renderSchedules(allSchedules);
+        const todayStr = getTodayString();
+        const upcomingSchedules = allSchedules.filter(s => s.date >= todayStr);
+        renderSchedules(upcomingSchedules);
       }
     }
 
     function renderSchedules(schedules) {
       const app = document.getElementById('app');
       if (!schedules || schedules.length === 0) {
-        app.innerHTML = '<div class="loading">등록된 일정이 없습니다.</div>';
+        app.innerHTML = '<div class="loading">다가오는 연습 일정이 없습니다.</div>';
         return;
       }
 
@@ -290,7 +304,7 @@
             <div class="action-group">
               <div class="input-row">
                 <input type="text" id="name-${item.rowIndex}" placeholder="본인 이름 (필수)">
-                <input type="text" id="note-${item.rowIndex}" placeholder="요청사항 (선택: 지각/조퇴 등)">
+                <input type="text" id="note-${item.rowIndex}" placeholder="요청사항/사유 (선택: 지각/조퇴/사유 등)">
               </div>
               <div class="button-container">
                 <button class="btn-action btn-attend" onclick="submitAttendance(${item.rowIndex}, true)">참석</button>
