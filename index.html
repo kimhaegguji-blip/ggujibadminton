@@ -80,9 +80,17 @@
     .calendar-header button { background: none; border: none; font-size: 16px; cursor: pointer; color: var(--primary-color); padding: 4px 8px; }
     .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 12px; }
     .cal-day-head { font-weight: bold; color: var(--text-sub); padding: 4px 0; }
-    .cal-day { padding: 8px 0; border-radius: 6px; position: relative; background: #fafafa; }
+    
+    .cal-day { padding: 8px 0; border-radius: 6px; position: relative; background: #fafafa; border: 1px solid transparent; }
     .cal-day.has-event { background: #dbeafe; color: var(--primary-color); font-weight: bold; cursor: pointer; }
     .cal-day.has-event::after { content: '•'; position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); color: var(--primary-color); font-size: 10px; }
+    
+    /* 🔥 오늘 날짜 강조 스타일 🔥 */
+    .cal-day.is-today { 
+      border: 2px solid var(--primary-color) !important; 
+      font-weight: 900 !important; 
+      background-color: #eff6ff !important;
+    }
 
     /* 일정 카드 및 시간 강조 디자인 */
     .card { background: var(--card-bg); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color); overflow: hidden; }
@@ -210,7 +218,7 @@
           document.getElementById('noticeContent').innerText = data.notice || '공지사항이 없습니다.';
           renderCalendar();
           
-          // 🔥 지나간 날짜 자동 제외 후 오늘 이후 다가오는 일정만 표시
+          // 지나간 날짜 자동 제외 후 오늘 이후 다가오는 일정만 표시
           const todayStr = getTodayString();
           const upcomingSchedules = allSchedules.filter(s => s.date >= todayStr);
           renderSchedules(upcomingSchedules);
@@ -221,7 +229,6 @@
         });
     }
 
-    // 오늘 날짜 문자열 반환 (yyyy-MM-dd)
     function getTodayString() {
       const now = new Date();
       const year = now.getFullYear();
@@ -242,6 +249,7 @@
 
       const firstDay = new Date(currentYear, currentMonth, 1).getDay();
       const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const todayStr = getTodayString();
 
       for (let i = 0; i < firstDay; i++) {
         grid.innerHTML += `<div></div>`;
@@ -253,9 +261,13 @@
         const dateKey = `${currentYear}-${monthStr}-${dayStr}`;
 
         const hasEvent = allSchedules.some(s => s.date === dateKey);
-        const eventClass = hasEvent ? 'has-event' : '';
+        const isToday = (dateKey === todayStr);
 
-        grid.innerHTML += `<div class="cal-day ${eventClass}" onclick="filterByDate('${dateKey}')">${day}</div>`;
+        let dayClasses = ['cal-day'];
+        if (hasEvent) dayClasses.push('has-event');
+        if (isToday) dayClasses.push('is-today');
+
+        grid.innerHTML += `<div class="${dayClasses.join(' ')}" onclick="filterByDate('${dateKey}')">${day}</div>`;
       }
     }
 
