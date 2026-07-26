@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>김해구지초 배드민턴 연습 일정</title>
   
-  <!-- 바탕화면 어플 아이콘 세팅 (셔틀콕) -->
-  <link rel="apple-touch-icon" sizes="180x180" href="https://cdn-icons-png.flaticon.com/512/2906/2906803.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="https://cdn-icons-png.flaticon.com/512/2906/2906803.png">
+  <!-- 💥 [확실한 셔틀콕 아이콘 세팅] 💥 -->
+  <!-- 아이폰 / iPad 전용 홈화면 아이콘 -->
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2906/2906803.png">
+  <link rel="apple-touch-icon-precomposed" href="https://cdn-icons-png.flaticon.com/512/2906/2906803.png">
+  
+  <!-- 안드로이드 / 갤럭시 / Chrome 및 기본 파비콘 -->
   <link rel="icon" type="image/png" sizes="192x192" href="https://cdn-icons-png.flaticon.com/512/2906/2906803.png">
-  <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/2906/2906803.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="https://cdn-icons-png.flaticon.com/512/2906/2906803.png">
+  <link rel="shortcut icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/2906/2906803.png">
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -19,7 +23,7 @@
   <style>
     :root {
       --primary-color: #2563eb;
-      --today-color: #ec4899; /* 핫핑크 강조 색상 */
+      --today-color: #ec4899;
       --bg-color: #f8fafc;
       --card-bg: #ffffff;
       --text-main: #1e293b;
@@ -83,22 +87,17 @@
     .cal-day-head { font-weight: bold; color: var(--text-sub); padding: 4px 0; }
     
     .cal-day { padding: 8px 0; border-radius: 6px; position: relative; background: #fafafa; border: 2px solid transparent; }
-    
-    /* 연습 일정이 있는 날 (파란색) */
     .cal-day.has-event { background: #dbeafe; color: var(--primary-color); font-weight: bold; cursor: pointer; }
     .cal-day.has-event::after { content: '•'; position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); color: var(--primary-color); font-size: 10px; }
     
-    /* 🔥 오늘 날짜 강조 스타일 (분홍색) 🔥 */
+    /* 오늘 날짜 (분홍색) */
     .cal-day.is-today { 
-      background-color: #fce7f3 !important; /* 분홍색 배경 */
-      color: #be185d !important;             /* 짙은 분홍색 글씨 */
+      background-color: #fce7f3 !important; 
+      color: #be185d !important;             
       border: 2px solid var(--today-color) !important; 
       font-weight: 900 !important; 
     }
-    /* 오늘 날짜이면서 연습 일정도 있는 경우 점 색상 조정 */
-    .cal-day.is-today.has-event::after {
-      color: #be185d !important;
-    }
+    .cal-day.is-today.has-event::after { color: #be185d !important; }
 
     /* 일정 카드 및 시간 강조 디자인 */
     .card { background: var(--card-bg); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color); overflow: hidden; }
@@ -123,7 +122,7 @@
 
     .card-body { margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.4; word-break: break-all; }
     
-    /* 세로 배치 레이아웃 (잘림 방지) */
+    /* 참석/불참 영역 레이아웃 */
     .attendance-section { 
       border-top: 1px dashed var(--border-color); 
       padding-top: 12px; 
@@ -131,8 +130,9 @@
       flex-direction: column; 
       gap: 10px; 
     }
-    .attendance-list { font-size: 13px; color: var(--text-sub); word-break: break-all; }
-    .attendance-list strong { color: var(--primary-color); }
+    .attendance-list { font-size: 13px; color: var(--text-sub); word-break: break-all; line-height: 1.5; }
+    .attendance-list strong.attend-txt { color: var(--primary-color); }
+    .attendance-list strong.absent-txt { color: #e11d48; }
 
     .action-group { 
       display: flex; 
@@ -226,7 +226,6 @@
           document.getElementById('noticeContent').innerText = data.notice || '공지사항이 없습니다.';
           renderCalendar();
           
-          // 지나간 날짜 자동 제외 후 오늘 이후 다가오는 일정만 표시
           const todayStr = getTodayString();
           const upcomingSchedules = allSchedules.filter(s => s.date >= todayStr);
           renderSchedules(upcomingSchedules);
@@ -319,7 +318,8 @@
           </div>
           <div class="attendance-section">
             <div class="attendance-list">
-              👥 <strong>참석 명단:</strong> <span id="attendees-${item.rowIndex}">${item.attendees || '없음'}</span>
+              🔵 <strong class="attend-txt">참석 명단:</strong> <span id="attendees-${item.rowIndex}">${item.attendees || '없음'}</span><br>
+              🔴 <strong class="absent-txt">불참 명단:</strong> <span id="absentees-${item.rowIndex}">${item.absentees || '없음'}</span>
             </div>
             <div class="action-group">
               <div class="input-row">
@@ -367,10 +367,14 @@
       .then(res => {
         if (res.status === 'success') {
           document.getElementById(`attendees-${rowIndex}`).innerText = res.updatedAttendees || '없음';
+          document.getElementById(`absentees-${rowIndex}`).innerText = res.updatedAbsentees || '없음';
           nameInput.value = '';
           noteInput.value = '';
           const target = allSchedules.find(s => s.rowIndex === rowIndex);
-          if (target) target.attendees = res.updatedAttendees;
+          if (target) {
+            target.attendees = res.updatedAttendees;
+            target.absentees = res.updatedAbsentees;
+          }
         } else {
           alert('처리 중 오류가 발생했습니다.');
         }
