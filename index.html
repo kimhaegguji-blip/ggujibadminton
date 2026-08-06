@@ -32,6 +32,13 @@
     header { max-width: 600px; margin: 0 auto 12px; text-align: center; }
     header h1 { font-size: 20px; color: var(--primary-color); margin-bottom: 4px; }
     header p { font-size: 13px; color: var(--text-sub); }
+    
+    /* 🔥 링크 복사 박스 디자인 */
+    .share-box { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #f1f5f9; padding: 10px 12px; border-radius: 8px; font-size: 13px; color: #475569; border: 1px solid var(--border-color); cursor: pointer; transition: background-color 0.2s; }
+    .share-box:active { background-color: #e2e8f0; }
+    .share-box span { color: var(--primary-color); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .share-btn { background-color: #334155; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: none; }
+
     .container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
     
     .notice-bar { background-color: #1e293b; color: #fbbf24; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; overflow: hidden; white-space: nowrap; box-shadow: var(--shadow); display: flex; align-items: center; }
@@ -84,6 +91,12 @@
   <header>
     <h1>🏸 김해구지초 배드민턴 연습 일정</h1>
     <p>달력으로 전체 일정을 보고 참석 여부를 입력하세요.</p>
+    
+    <!-- 🔥 새로 추가된 앱 링크 복사 버튼 -->
+    <div class="share-box" onclick="copyShareLink()">
+      <span>🔗 kimhaegguji-blip.github.io/ggujibadminton</span>
+      <button class="share-btn">복사</button>
+    </div>
   </header>
 
   <div class="container">
@@ -112,6 +125,18 @@
     // ⚠️ 아래 주소가 배포된 웹 앱 URL이 맞는지 확인하세요!
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyhnLDXvrvFrLV1tk3fD4PIj2w-rlKqX-ERk4RLQu40d32vKYoIk3n16746HdFkz8_EYA/exec";
 
+    // 🔥 링크 복사 기능
+    function copyShareLink() {
+      const url = "https://kimhaegguji-blip.github.io/ggujibadminton/";
+      const tempInput = document.createElement("input");
+      tempInput.value = url;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+      alert("✅ 앱 링크가 복사되었습니다!\n단톡방이나 밴드, 문자에 편하게 붙여넣기 하세요.");
+    }
+
     let allSchedules = [];
     let globalAllStudents = []; 
     let currentYear = new Date().getFullYear();
@@ -126,7 +151,6 @@
         .then(response => response.json())
         .then(data => {
           
-          // 🔥 서버에서 오류(시트 이름 틀림 등)가 났다면 화면에 표시
           if (data.error) {
             document.getElementById('app').innerHTML = `<div class="error-box"><b>⚠️ 데이터를 불러오지 못했습니다.</b><br><br>구글 시트 설정 오류입니다:<br>${data.error}</div>`;
             return;
